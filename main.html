@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Kelas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background-color: #4361ee !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background-color: #4361ee;
+            border: none;
+            border-radius: 8px;
+        }
+        .btn-primary:hover {
+            background-color: #3a56d4;
+        }
+        .table th {
+            background-color: #f1f3f9;
+            border: none;
+            font-weight: 600;
+        }
+        .badge {
+            font-size: 0.8rem;
+        }
+        .section-title {
+            border-left: 4px solid #4361ee;
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        .modal-header {
+            background-color: #4361ee;
+            color: white;
+        }
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-mortarboard-fill me-2"></i>Sistem Kelas
+            </a>
+            <div class="ms-auto d-flex">
+                <span class="navbar-text text-white me-3">
+                    <i class="bi bi-person-circle me-1"></i>Admin
+                </span>
+                <button class="btn btn-outline-light btn-sm" onclick="resetData()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Reset Data
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container my-4">
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2 class="section-title">Dashboard Kelas</h2>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center p-3">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">Total Kelas</h5>
+                            <h2 id="totalClasses" class="text-primary">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center p-3">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">Total Siswa</h5>
+                            <h2 id="totalStudents" class="text-success">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center p-3">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">Total Tugas</h5>
+                            <h2 id="totalAssignments" class="text-warning">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Daftar Kelas</h4>
+                        <button class="btn btn-primary" onclick="showAddClassModal()">
+                            <i class="bi bi-plus-circle me-1"></i>Tambah Kelas
+                        </button>
+                    </div>
+                    
+                    <div id="classList" class="row">
+                        <!-- Class cards will be rendered here -->
+                    </div>
+                    
+                    <div id="emptyClassState" class="empty-state d-none">
+                        <i class="bi bi-inbox"></i>
+                        <h5>Belum ada kelas</h5>
+                        <p>Tambahkan kelas baru untuk memulai</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Detail Section -->
+        <div id="classDetailSection" class="d-none">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <button class="btn btn-outline-secondary mb-3" onclick="showDashboard()">
+                        <i class="bi bi-arrow-left me-1"></i>Kembali ke Dashboard
+                    </button>
+                    <h2 class="section-title">Detail Kelas: <span id="className"></span></h2>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Daftar Siswa</h5>
+                            <button class="btn btn-sm btn-primary" onclick="showAddStudentModal()">
+                                <i class="bi bi-plus-circle me-1"></i>Tambah Siswa
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="studentList">
+                                <!-- Student list will be rendered here -->
+                            </div>
+                            <div id="emptyStudentState" class="empty-state d-none">
+                                <i class="bi bi-people"></i>
+                                <h5>Belum ada siswa</h5>
+                                <p>Tambahkan siswa ke kelas ini</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Daftar Tugas</h5>
+                            <button class="btn btn-sm btn-primary" onclick="showAddAssignmentModal()">
+                                <i class="bi bi-plus-circle me-1"></i>Tambah Tugas
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="assignmentList">
+                                <!-- Assignment list will be rendered here -->
+                            </div>
+                            <div id="emptyAssignmentState" class="empty-state d-none">
+                                <i class="bi bi-journal-text"></i>
+                                <h5>Belum ada tugas</h5>
+                                <p>Tambahkan tugas untuk kelas ini</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add/Edit Class Modal -->
+    <div class="modal fade" id="classModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="classModalTitle">Tambah Kelas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="classForm">
+                        <input type="hidden" id="classId">
+                        <div class="mb-3">
+                            <label for="classNameInput" class="form-label">Nama Kelas</label>
+                            <input type="text" class="form-control" id="classNameInput" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="classDescription" class="form-label">Deskripsi</label>
+                            <textarea class="form-control" id="classDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="classTeacher" class="form-label">Guru Pengajar</label>
+                            <input type="text" class="form-control" id="classTeacher" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveClass()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Student Modal -->
+    <div class="modal fade" id="studentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="studentModalTitle">Tambah Siswa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="studentForm">
+                        <input type="hidden" id="studentId">
+                        <input type="hidden" id="studentClassId">
+                        <div class="mb-3">
+                            <label for="studentName" class="form-label">Nama Siswa</label>
+                            <input type="text" class="form-control" id="studentName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentNis" class="form-label">NIS</label>
+                            <input type="text" class="form-control" id="studentNis" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="studentEmail">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveStudent()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Assignment Modal -->
+    <div class="modal fade" id="assignmentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignmentModalTitle">Tambah Tugas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="assignmentForm">
+                        <input type="hidden" id="assignmentId">
+                        <input type="hidden" id="assignmentClassId">
+                        <div class="mb-3">
+                            <label for="assignmentTitle" class="form-label">Judul Tugas</label>
+                            <input type="text" class="form-control" id="assignmentTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="assignmentDescription" class="form-label">Deskripsi</label>
+                            <textarea class="form-control" id="assignmentDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="assignmentDeadline" class="form-label">Deadline</label>
+                            <input type="date" class="form-control" id="assignmentDeadline" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAssignment()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Data storage
+        let classes = JSON.parse(localStorage.getItem('classes')) || [];
+        let students = JSON.parse(localStorage.getItem('students')) || [];
+        let assignments = JSON.parse(localStorage.getItem('assignments')) || [];
+        
+        let currentClassId = null;
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            showDashboard();
+            updateDashboardStats();
+        });
+        
+        // Show dashboard
+        function showDashboard() {
+            document.getElementById('dashboardSection').classList.remove('d-none');
+            document.getElementById('classDetailSection').classList.add('d-none');
+            renderClasses();
+            updateDashboardStats();
+        }
+        
+        // Show class detail
+        function showClassDetail(classId) {
+            currentClassId = classId;
+            const classItem = classes.find(c => c.id === classId);
+            
+            if (classItem) {
+                document.getElementById('className').textContent = classItem.name;
+                document.getElementById('dashboardSection').classList.add('d-none');
+                document.getElementById('classDetailSection').classList.remove('d-none');
+                
+                renderStudents(classId);
+                renderAssignments(classId);
+            }
+        }
+        
+        // Update dashboard statistics
+        function updateDashboardStats() {
+            document.getElementById('totalClasses').textContent = classes.length;
+            document.getElementById('totalStudents').textContent = students.length;
+            document.getElementById('totalAssignments').textContent = assignments.length;
+        }
+        
+        // Render classes
+        function renderClasses() {
+            const classList = document.getElementById('classList');
+            const emptyState = document.getElementById('emptyClassState');
+            
+            classList.innerHTML = '';
+            
+            if (classes.length === 0) {
+                emptyState.classList.remove('d-none');
+                return;
+            }
+            
+            emptyState.classList.add('d-none');
+            
+            classes.forEach(classItem => {
+                const studentCount = students.filter(s => s.classId === classItem.id).length;
+                const assignmentCount = assignments.filter(a => a.classId === classItem.id).length;
+                
+                const classCard = document.createElement('div');
+                classCard.className = 'col-md-4 mb-4';
+                classCard.innerHTML = `
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">${classItem.name}</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="editClass('${classItem.id}')">
+                                            <i class="bi bi-pencil me-2"></i>Edit</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteClass('${classItem.id}')">
+                                            <i class="bi bi-trash me-2"></i>Hapus</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="card-text text-muted">${classItem.description || 'Tidak ada deskripsi'}</p>
+                            <div class="d-flex justify-content-between mt-3">
+                                <span><i class="bi bi-person me-1"></i> ${studentCount} Siswa</span>
+                                <span><i class="bi bi-journal-text me-1"></i> ${assignmentCount} Tugas</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <button class="btn btn-sm btn-primary w-100" onclick="showClassDetail('${classItem.id}')">
+                                Lihat Detail <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                classList.appendChild(classCard);
+            });
+        }
+        
+        // Render students
+        function renderStudents(classId) {
+            const studentList = document.getElementById('studentList');
+            const emptyState = document.getElementById('emptyStudentState');
+            
+            studentList.innerHTML = '';
+            
+            const classStudents = students.filter(s => s.classId === classId);
+            
+            if (classStudents.length === 0) {
+                emptyState.classList.remove('d-none');
+                return;
+            }
+            
+            emptyState.classList.add('d-none');
+            
+            classStudents.forEach(student => {
+                const studentItem = document.createElement('div');
+                studentItem.className = 'd-flex justify-content-between align-items-center p-2 border-bottom';
+                studentItem.innerHTML = `
+                    <div>
+                        <h6 class="mb-0">${student.name}</h6>
+                        <small class="text-muted">NIS: ${student.nis}</small>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editStudent('${student.id}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent('${student.id}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `;
+                studentList.appendChild(studentItem);
+            });
+        }
+        
+        // Render assignments
+        function renderAssignments(classId) {
+            const assignmentList = document.getElementById('assignmentList');
+            const emptyState = document.getElementById('emptyAssignmentState');
+            
+            assignmentList.innerHTML = '';
+            
+            const classAssignments = assignments.filter(a => a.classId === classId);
+            
+            if (classAssignments.length === 0) {
+                emptyState.classList.remove('d-none');
+                return;
+            }
+            
+            emptyState.classList.add('d-none');
+            
+            classAssignments.forEach(assignment => {
+                const assignmentItem = document.createElement('div');
+                assignmentItem.className = 'mb-3 p-3 border rounded';
+                
+                const deadline = new Date(assignment.deadline);
+                const today = new Date();
+                const diffTime = deadline - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let badgeClass = 'bg-success';
+                let badgeText = 'Aktif';
+                
+                if (diffDays < 0) {
+                    badgeClass = 'bg-danger';
+                    badgeText = 'Terlambat';
+                } else if (diffDays <= 3) {
+                    badgeClass = 'bg-warning text-dark';
+                    badgeText = 'Mendekati';
+                }
+                
+                assignmentItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${assignment.title}</h6>
+                            <p class="mb-1 text-muted">${assignment.description || 'Tidak ada deskripsi'}</p>
+                            <small><i class="bi bi-calendar-event me-1"></i> Deadline: ${formatDate(assignment.deadline)}</small>
+                        </div>
+                        <div>
+                            <span class="badge ${badgeClass}">${badgeText}</span>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editAssignment('${assignment.id}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteAssignment('${assignment.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                assignmentList.appendChild(assignmentItem);
+            });
+        }
+        
+        // Class functions
+        function showAddClassModal() {
+            document.getElementById('classModalTitle').textContent = 'Tambah Kelas';
+            document.getElementById('classForm').reset();
+            document.getElementById('classId').value = '';
+            new bootstrap.Modal(document.getElementById('classModal')).show();
+        }
+        
+        function editClass(classId) {
+            const classItem = classes.find(c => c.id === classId);
+            
+            if (classItem) {
+                document.getElementById('classModalTitle').textContent = 'Edit Kelas';
+                document.getElementById('classId').value = classItem.id;
+                document.getElementById('classNameInput').value = classItem.name;
+                document.getElementById('classDescription').value = classItem.description || '';
+                document.getElementById('classTeacher').value = classItem.teacher;
+                new bootstrap.Modal(document.getElementById('classModal')).show();
+            }
+        }
+        
+        function saveClass() {
+            const classId = document.getElementById('classId').value;
+            const name = document.getElementById('classNameInput').value;
+            const description = document.getElementById('classDescription').value;
+            const teacher = document.getElementById('classTeacher').value;
+            
+            if (classId) {
+                // Update existing class
+                const index = classes.findIndex(c => c.id === classId);
+                if (index !== -1) {
+                    classes[index] = { ...classes[index], name, description, teacher };
+                    showToast('Kelas berhasil diperbarui', 'success');
+                }
+            } else {
+                // Add new class
+                const newClass = {
+                    id: generateId(),
+                    name,
+                    description,
+                    teacher,
+                    createdAt: new Date().toISOString()
+                };
+                classes.push(newClass);
+                showToast('Kelas berhasil ditambahkan', 'success');
+            }
+            
+            localStorage.setItem('classes', JSON.stringify(classes));
+            bootstrap.Modal.getInstance(document.getElementById('classModal')).hide();
+            showDashboard();
+        }
+        
+        function deleteClass(classId) {
+            if (confirm('Apakah Anda yakin ingin menghapus kelas ini? Semua data siswa dan tugas akan terhapus juga.')) {
+                classes = classes.filter(c => c.id !== classId);
+                students = students.filter(s => s.classId !== classId);
+                assignments = assignments.filter(a => a.classId !== classId);
+                
+                localStorage.setItem('classes', JSON.stringify(classes));
+                localStorage.setItem('students', JSON.stringify(students));
+                localStorage.setItem('assignments', JSON.stringify(assignments));
+                
+                showToast('Kelas berhasil dihapus', 'success');
+                showDashboard();
+            }
+        }
+        
+        // Student functions
+        function showAddStudentModal() {
+            document.getElementById('studentModalTitle').textContent = 'Tambah Siswa';
+            document.getElementById('studentForm').reset();
+            document.getElementById('studentId').value = '';
+            document.getElementById('studentClassId').value = currentClassId;
+            new bootstrap.Modal(document.getElementById('studentModal')).show();
+        }
+        
+        function editStudent(studentId) {
+            const student = students.find(s => s.id === studentId);
+            
+            if (student) {
+                document.getElementById('studentModalTitle').textContent = 'Edit Siswa';
+                document.getElementById('studentId').value = student.id;
+                document.getElementById('studentClassId').value = student.classId;
+                document.getElementById('studentName').value = student.name;
+                document.getElementById('studentNis').value = student.nis;
+                document.getElementById('studentEmail').value = student.email || '';
+                new bootstrap.Modal(document.getElementById('studentModal')).show();
+            }
+        }
+        
+        function saveStudent() {
+            const studentId = document.getElementById('studentId').value;
+            const classId = document.getElementById('studentClassId').value;
+            const name = document.getElementById('studentName').value;
+            const nis = document.getElementById('studentNis').value;
+            const email = document.getElementById('studentEmail').value;
+            
+            if (studentId) {
+                // Update existing student
+                const index = students.findIndex(s => s.id === studentId);
+                if (index !== -1) {
+                    students[index] = { ...students[index], name, nis, email };
+                    showToast('Data siswa berhasil diperbarui', 'success');
+                }
+            } else {
+                // Add new student
+                const newStudent = {
+                    id: generateId(),
+                    classId,
+                    name,
+                    nis,
+                    email,
+                    createdAt: new Date().toISOString()
+                };
+                students.push(newStudent);
+                showToast('Siswa berhasil ditambahkan', 'success');
+            }
+            
+            localStorage.setItem('students', JSON.stringify(students));
+            bootstrap.Modal.getInstance(document.getElementById('studentModal')).hide();
+            renderStudents(classId);
+            updateDashboardStats();
+        }
+        
+        function deleteStudent(studentId) {
+            if (confirm('Apakah Anda yakin ingin menghapus siswa ini?')) {
+                students = students.filter(s => s.id !== studentId);
+                localStorage.setItem('students', JSON.stringify(students));
+                showToast('Siswa berhasil dihapus', 'success');
+                renderStudents(currentClassId);
+                updateDashboardStats();
+            }
+        }
+        
+        // Assignment functions
+        function showAddAssignmentModal() {
+            document.getElementById('assignmentModalTitle').textContent = 'Tambah Tugas';
+            document.getElementById('assignmentForm').reset();
+            document.getElementById('assignmentId').value = '';
+            document.getElementById('assignmentClassId').value = currentClassId;
+            new bootstrap.Modal(document.getElementById('assignmentModal')).show();
+        }
+        
+        function editAssignment(assignmentId) {
+            const assignment = assignments.find(a => a.id === assignmentId);
+            
+            if (assignment) {
+                document.getElementById('assignmentModalTitle').textContent = 'Edit Tugas';
+                document.getElementById('assignmentId').value = assignment.id;
+                document.getElementById('assignmentClassId').value = assignment.classId;
+                document.getElementById('assignmentTitle').value = assignment.title;
+                document.getElementById('assignmentDescription').value = assignment.description || '';
+                document.getElementById('assignmentDeadline').value = assignment.deadline;
+                new bootstrap.Modal(document.getElementById('assignmentModal')).show();
+            }
+        }
+        
+        function saveAssignment() {
+            const assignmentId = document.getElementById('assignmentId').value;
+            const classId = document.getElementById('assignmentClassId').value;
+            const title = document.getElementById('assignmentTitle').value;
+            const description = document.getElementById('assignmentDescription').value;
+            const deadline = document.getElementById('assignmentDeadline').value;
+            
+            if (assignmentId) {
+                // Update existing assignment
+                const index = assignments.findIndex(a => a.id === assignmentId);
+                if (index !== -1) {
+                    assignments[index] = { ...assignments[index], title, description, deadline };
+                    showToast('Tugas berhasil diperbarui', 'success');
+                }
+            } else {
+                // Add new assignment
+                const newAssignment = {
+                    id: generateId(),
+                    classId,
+                    title,
+                    description,
+                    deadline,
+                    createdAt: new Date().toISOString()
+                };
+                assignments.push(newAssignment);
+                showToast('Tugas berhasil ditambahkan', 'success');
+            }
+            
+            localStorage.setItem('assignments', JSON.stringify(assignments));
+            bootstrap.Modal.getInstance(document.getElementById('assignmentModal')).hide();
+            renderAssignments(classId);
+            updateDashboardStats();
+        }
+        
+        function deleteAssignment(assignmentId) {
+            if (confirm('Apakah Anda yakin ingin menghapus tugas ini?')) {
+                assignments = assignments.filter(a => a.id !== assignmentId);
+                localStorage.setItem('assignments', JSON.stringify(assignments));
+                showToast('Tugas berhasil dihapus', 'success');
+                renderAssignments(currentClassId);
+                updateDashboardStats();
+            }
+        }
+        
+        // Utility functions
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+        
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
+        
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
+            const toastId = 'toast-' + Date.now();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'primary'} border-0`;
+            toast.id = toastId;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+        
+        function resetData() {
+            if (confirm('Apakah Anda yakin ingin mereset semua data? Tindakan ini tidak dapat dibatalkan.')) {
+                localStorage.removeItem('classes');
+                localStorage.removeItem('students');
+                localStorage.removeItem('assignments');
+                classes = [];
+                students = [];
+                assignments = [];
+                showToast('Semua data berhasil direset', 'success');
+                showDashboard();
+            }
+        }
+    </script>
+</body>
+</html>
